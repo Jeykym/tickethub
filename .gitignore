@@ -1,0 +1,24 @@
+﻿# === .NET Build and Release Artifacts ===
+bin/
+obj/
+
+# === IDE and Editor Files ===
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# User-specific project settings
+*.user
+*.userosscache
+*.suo
+
+# === Operating System Files ===
+.DS_Store
+Thumbs.db
+
+# === Local Environment Configurations ===
+# Exclude files that might contain local secrets or connection strings
+appsettings.Development.json
