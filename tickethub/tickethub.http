@@ -1,6 +1,12 @@
 @tickethub_HostAddress = http://localhost:5234
 
-GET {{tickethub_HostAddress}}/weatherforecast/
+POST {{tickethub_HostAddress}}/api/concerts
+Content-Type: application/json
 Accept: application/json
 
-###
+{
+  "title": "Metallica",
+  "start": "2026-08-15T20:00:00Z",
+  "maxCapacity": 5000,
+  "ticketPrice": 675.00
+}
