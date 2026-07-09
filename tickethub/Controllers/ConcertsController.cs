@@ -24,4 +24,17 @@ public class ConcertsController(
         
         return CreatedAtAction(nameof(CreateConcert), new { id = concert.Id }, response);
     }
+
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult GetAllConcerts()
+    {
+        var concerts = context.Concerts
+            .AsEnumerable()
+            .Select(mapper.ToResponse)
+            .ToArray();
+        
+        return Ok(concerts);
+    }
 }

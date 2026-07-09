@@ -72,6 +72,14 @@ public class ConcertsControllerTests : IClassFixture<WebApplicationFactory<Progr
         return new CreateConcertRequest(title, start ?? DateTime.Now, maxCapacity, ticketPrice);
     }
 
+    private void ClearDatabase()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Concerts.RemoveRange(db.Concerts);
+        db.SaveChanges();
+    }
+
     [Fact]
     public async Task CreateConcert_ValidRequest_Returns201()
     {
@@ -179,5 +187,56 @@ public class ConcertsControllerTests : IClassFixture<WebApplicationFactory<Progr
         var request = ValidRequest(ticketPrice: price);
         var response = await _client.PostAsJsonAsync("/api/concerts", request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task GetAllConcerts_NoConcertsStored_Returns200WithEmptyList()
+    {
+        ClearDatabase();
+
+        var response = await _client.GetAsync("/api/concerts");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var concerts = await response.Content.ReadFromJsonAsync<ConcertResponse[]>();
+        Assert.NotNull(concerts);
+        Assert.Empty(concerts);
+    }
+
+    [Fact]
+    public async Task GetAllConcerts_SingleConcertStored_Returns200WithOneConcert()
+    {
+        ClearDatabase();
+        var request = ValidRequest(title: "Solo Concert");
+        await _client.PostAsJsonAsync("/api/concerts", request);
+
+        var response = await _client.GetAsync("/api/concerts");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var concerts = await response.Content.ReadFromJsonAsync<ConcertResponse[]>();
+        Assert.NotNull(concerts);
+        var concert = Assert.Single(concerts);
+        Assert.Equal("Solo Concert", concert.Title);
+    }
+
+    [Fact]
+    public async Task GetAllConcerts_MultipleConcertsStored_Returns200WithAllConcerts()
+    {
+        ClearDatabase();
+        var request1 = ValidRequest(title: "Concert A");
+        var request2 = ValidRequest(title: "Concert B");
+        await _client.PostAsJsonAsync("/api/concerts", request1);
+        await _client.PostAsJsonAsync("/api/concerts", request2);
+
+        var response = await _client.GetAsync("/api/concerts");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var concerts = await response.Content.ReadFromJsonAsync<ConcertResponse[]>();
+        Assert.NotNull(concerts);
+        Assert.Equal(2, concerts.Length);
+        Assert.Contains(concerts, c => c.Title == "Concert A");
+        Assert.Contains(concerts, c => c.Title == "Concert B");
     }
 }
