@@ -18,17 +18,4 @@ public sealed record CreateConcertRequest
 
     [Range(0, double.MaxValue, ErrorMessage = "TicketPrice must be greater than or equal to 0")]
     public required decimal TicketPrice { get; init; }
-
-    public CreateConcertRequest()
-    {
-    }
-
-    [SetsRequiredMembers]
-    public CreateConcertRequest(string title, DateTime start, int maxCapacity, decimal ticketPrice)
-    {
-        Title = title;
-        Start = start;
-        MaxCapacity = maxCapacity;
-        TicketPrice = ticketPrice;
-    }
 }

@@ -69,7 +69,13 @@ public class ConcertsControllerTests : IClassFixture<WebApplicationFactory<Progr
         int maxCapacity = 5000,
         decimal ticketPrice = 675)
     {
-        return new CreateConcertRequest(title, start ?? DateTime.Now, maxCapacity, ticketPrice);
+        return new CreateConcertRequest
+        {
+            Title = title,
+            Start = start ?? DateTime.Now,
+            MaxCapacity = maxCapacity,
+            TicketPrice = ticketPrice
+        };
     }
 
     private void ClearDatabase()
