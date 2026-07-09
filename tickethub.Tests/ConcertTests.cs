@@ -1,248 +1,121 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+﻿using System.ComponentModel.DataAnnotations;
 using tickethub.Models;
-using Xunit;
 
 namespace tickethub.Tests;
 
 public class ConcertTests
 {
-    private IList<ValidationResult> ValidateModel(object model)
+
+    private static List<ValidationResult> ValidateModel(object model)
     {
         var validationResults = new List<ValidationResult>();
         var validationContext = new ValidationContext(model);
         Validator.TryValidateObject(model, validationContext, validationResults, true);
         return validationResults;
     }
+
     
+    private static Concert CreateValidConcert(
+        string title = "Metallica",
+        int maxCapacity = 5000,
+        decimal ticketPrice = 675,
+        int ticketsSold = 0)
+    {
+        return new Concert
+        {
+            Title = title,
+            Start = DateTime.UtcNow.AddDays(10),
+            MaxCapacity = maxCapacity,
+            TicketPrice = ticketPrice,
+            TicketsSold = ticketsSold
+        };
+    }
+
     [Fact]
     public void ValidConcert_ShouldPassValidation()
     {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675
-        };
-        
+        var concert = CreateValidConcert();
         var results = ValidateModel(concert);
-        
         Assert.Empty(results);
     }
-    
-    [Fact]
-    public void EmptyTitle_ShouldFailValidation()
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(50)]
+    public void ValidTitleLengths_ShouldPassValidation(int length)
     {
-        var concert = new Concert
-        {
-            Title = string.Empty,
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675
-        };
-
+        var concert = CreateValidConcert(title: new string('a', length));
         var results = ValidateModel(concert);
+        Assert.Empty(results);
+    }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(51)]
+    public void InvalidTitleLengths_ShouldFailValidation(int length)
+    {
+        var concert = CreateValidConcert(title: new string('a', length));
+        var results = ValidateModel(concert);
         Assert.Single(results);
     }
-    
-    [Fact]
-    public void SingleCharacterTitle_ShouldPassValidation()
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5000)]
+    public void ValidMaxCapacity_ShouldPassValidation(int capacity)
     {
-        var concert = new Concert
-        {
-            Title = "a",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675
-        };
-
+        var concert = CreateValidConcert(maxCapacity: capacity);
         var results = ValidateModel(concert);
-
-        Assert.Empty(results);
-    }
-    
-    
-    [Fact]
-    public void TitleAtMaxLength_ShouldPassValidation()
-    {
-        var concert = new Concert
-        {
-            Title = new string('a', 50),   // exactly 50 — boundary case
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675
-        };
-
-        var results = ValidateModel(concert);
-
         Assert.Empty(results);
     }
 
-    [Fact]
-    public void TitleExceedingMaxLength_ShouldFailValidation()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void InvalidMaxCapacity_ShouldFailValidation(int capacity)
     {
-        var concert = new Concert
-        {
-            Title = new string('a', 51),
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675
-        };
-
-        var result = ValidateModel(concert);
-        
-        Assert.Single(result);
-    }
-    
-    
-    [Fact]
-    public void ZeroMaxCapacity_ShouldFailValidation()
-    {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 0,
-            TicketPrice = 675
-        };
-
+        var concert = CreateValidConcert(maxCapacity: capacity);
         var results = ValidateModel(concert);
-
         Assert.Single(results);
     }
-    
-    [Fact]
-    public void PositiveMaxCapacity_ShouldPassValidation()
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(675)]
+    public void ValidTicketPrice_ShouldPassValidation(decimal price)
     {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 1,
-            TicketPrice = 675
-        };
-
+        var concert = CreateValidConcert(ticketPrice: price);
         var results = ValidateModel(concert);
-
         Assert.Empty(results);
     }
-    
-    [Fact]
-    public void NegativeMaxCapacity_ShouldFailValidation()
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-0.01)]
+    public void InvalidTicketPrice_ShouldFailValidation(decimal price)
     {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = -1,
-            TicketPrice = 675
-        };
-
+        var concert = CreateValidConcert(ticketPrice: price);
         var results = ValidateModel(concert);
-
         Assert.Single(results);
     }
-    
-    [Fact]
-    public void ZeroTicketPrice_ShouldPassValidation()
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void ValidTicketsSold_ShouldPassValidation(int sold)
     {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 0
-        };
-
+        var concert = CreateValidConcert(ticketsSold: sold);
         var results = ValidateModel(concert);
-
         Assert.Empty(results);
     }
-    
-    [Fact]
-    public void PositiveTicketPrice_ShouldPassValidation()
+
+    [Theory]
+    [InlineData(-1)]
+    public void InvalidTicketsSold_ShouldFailValidation(int sold)
     {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 1
-        };
-
+        var concert = CreateValidConcert(ticketsSold: sold);
         var results = ValidateModel(concert);
-
-        Assert.Empty(results);
-    }
-    
-    [Fact]
-    public void NegativeTicketPrice_ShouldFailValidation()
-    {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = -1
-        };
-
-        var results = ValidateModel(concert);
-
-        Assert.Single(results);
-    }
-    
-    [Fact]
-    public void PositiveTicketsSold_ShouldPassValidation()
-    {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675,
-            TicketsSold = 1
-        };
-
-        var results = ValidateModel(concert);
-
-        Assert.Empty(results);
-    }
-    
-    [Fact]
-    public void ZeroTicketsSold_ShouldPassValidation()
-    {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675,
-            TicketsSold = 0
-        };
-
-        var results = ValidateModel(concert);
-
-        Assert.Empty(results);
-    }
-    
-    [Fact]
-    public void NegativeTicketsSold_ShouldFailValidation()
-    {
-        var concert = new Concert
-        {
-            Title = "Metallica",
-            Start = DateTime.UtcNow.AddDays(10),
-            MaxCapacity = 5000,
-            TicketPrice = 675,
-            TicketsSold = -1
-        };
-
-        var results = ValidateModel(concert);
-
         Assert.Single(results);
     }
 }

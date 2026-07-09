@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using tickethub.Dtos;
-using Xunit;
 
 namespace tickethub.Tests;
 
 public class CreateConcertRequestTests
 {
-    private IList<ValidationResult> ValidateModel(object model)
+
+    private static List<ValidationResult> ValidateModel(object model)
     {
         var validationResults = new List<ValidationResult>();
         var validationContext = new ValidationContext(model);
