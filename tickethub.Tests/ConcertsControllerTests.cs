@@ -274,4 +274,31 @@ public class ConcertsControllerTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task DeleteConcert_ValidId_Returns204NoContentAndRemovesConcert()
+    {
+        ClearDatabase();
+        var request = ValidRequest(title: "Concert to Delete");
+        var createResponse = await _client.PostAsJsonAsync("/api/concerts", request);
+        var created = await createResponse.Content.ReadFromJsonAsync<ConcertResponse>();
+        Assert.NotNull(created);
+
+        var deleteResponse = await _client.DeleteAsync($"/api/concerts/{created.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+        var getResponse = await _client.GetAsync($"/api/concerts/{created.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteConcert_InvalidId_Returns404NotFound()
+    {
+        ClearDatabase();
+
+        var response = await _client.DeleteAsync($"/api/concerts/999999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

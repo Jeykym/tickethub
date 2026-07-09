@@ -53,4 +53,23 @@ public class ConcertsController(
         
         return Ok(mapper.ToResponse(concert));
     }
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult DeleteConcert(int id)
+    {
+        var concert = context.Concerts
+            .SingleOrDefault(c => c.Id == id);
+
+        if (concert is null)
+        {
+            return NotFound();
+        }
+
+        context.Concerts.Remove(concert);
+        context.SaveChanges();
+        
+        return NoContent();
+    }
 }
