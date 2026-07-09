@@ -245,4 +245,33 @@ public class ConcertsControllerTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains(concerts, c => c.Title == "Concert A");
         Assert.Contains(concerts, c => c.Title == "Concert B");
     }
+    
+    [Fact]
+    public async Task GetConcertById_ValidId_ReturnsConcert()
+    {
+        ClearDatabase();
+        var request = ValidRequest(title: "Solo Concert");
+        var createResponse = await _client.PostAsJsonAsync("/api/concerts", request);
+        var created = await createResponse.Content.ReadFromJsonAsync<ConcertResponse>();
+        Assert.NotNull(created);
+
+        var response = await _client.GetAsync($"/api/concerts/{created.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var concert = await response.Content.ReadFromJsonAsync<ConcertResponse>();
+        Assert.NotNull(concert);
+        Assert.Equal(created.Id, concert.Id);
+        Assert.Equal("Solo Concert", concert.Title);
+    }
+
+    [Fact]
+    public async Task GetConcertById_InvalidId_Returns404()
+    {
+        ClearDatabase();
+
+        var response = await _client.GetAsync("/api/concerts/999999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

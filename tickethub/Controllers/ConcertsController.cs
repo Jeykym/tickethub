@@ -37,4 +37,20 @@ public class ConcertsController(
         
         return Ok(concerts);
     }
+
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult GetConcertById(int id)
+    {
+        var concert = context.Concerts
+            .SingleOrDefault(c => c.Id == id);
+
+        if (concert is null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(mapper.ToResponse(concert));
+    }
 }
