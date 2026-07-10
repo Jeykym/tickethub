@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using tickethub.Models;
 
-namespace tickethub.Tests;
+namespace tickethub.Tests.Concerts;
 
 public class ConcertTests
 {
