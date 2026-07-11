@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
 using tickethub.Dtos;
 using tickethub.Dtos.Concert;
 using tickethub.Dtos.Order;
@@ -10,19 +11,20 @@ namespace tickethub.Controllers;
 [Route("api/[controller]")]
 public class ConcertsController(
     AppDbContext context,
-    ConcertMapper mapper) : ControllerBase
+    ConcertMapper concertMapper,
+    OrderMapper orderMapper) : ControllerBase
 {
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult CreateConcert([FromBody] CreateConcertRequest request)
     {
-        var concert = mapper.ToEntity(request);
+        var concert = concertMapper.ToEntity(request);
 
         context.Concerts.Add(concert);
         context.SaveChanges();
 
-        var response = mapper.ToResponse(concert);
+        var response = concertMapper.ToResponse(concert);
         
         return CreatedAtAction(nameof(CreateConcert), new { id = concert.Id }, response);
     }
@@ -34,7 +36,7 @@ public class ConcertsController(
     {
         var concerts = context.Concerts
             .AsEnumerable()
-            .Select(mapper.ToResponse)
+            .Select(concertMapper.ToResponse)
             .ToArray();
         
         return Ok(concerts);
@@ -53,7 +55,7 @@ public class ConcertsController(
             return NotFound();
         }
         
-        return Ok(mapper.ToResponse(concert));
+        return Ok(concertMapper.ToResponse(concert));
     }
 
     [HttpDelete("{id:int}")]
@@ -90,7 +92,24 @@ public class ConcertsController(
         {
             return NotFound();
         }
+
+        // TODO fix race condition when 2 customers order near MaxCapacity at the same time
+        if (concert.TicketsSold + request.Qty > concert.MaxCapacity)
+        {
+            return BadRequest("Order's quantity is above concert's maximum capacity");
+        }
         
-        return Ok();
+        concert.TicketsSold += request.Qty;
+        
+        var order = orderMapper.ToEntity(request);
+        order.UnitPrice = concert.TicketPrice;
+        order.ConcertId = concert.Id;
+        
+        context.Orders.Add(order);
+        context.SaveChanges();
+        
+        var response = orderMapper.ToResponse(order);
+        
+        return StatusCode(StatusCodes.Status201Created, response);
     }
 }
