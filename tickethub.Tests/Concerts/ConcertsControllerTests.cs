@@ -7,6 +7,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using tickethub.Dtos;
+using tickethub.Dtos.Concert;
 
 namespace tickethub.Tests.Concerts;
 

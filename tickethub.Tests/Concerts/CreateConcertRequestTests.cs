@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using tickethub.Dtos;
+using tickethub.Dtos.Concert;
 
 namespace tickethub.Tests.Concerts;
 

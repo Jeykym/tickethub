@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using tickethub.Dtos;
+using tickethub.Dtos.Concert;
 using tickethub.Mappers;
 
 namespace tickethub.Controllers;

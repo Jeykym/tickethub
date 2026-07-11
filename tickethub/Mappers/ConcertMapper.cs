@@ -1,5 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
 using tickethub.Dtos;
+using tickethub.Dtos.Concert;
 using tickethub.Models;
 
 namespace tickethub.Mappers;
