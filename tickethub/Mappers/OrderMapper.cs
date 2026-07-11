@@ -1,5 +1,4 @@
 ﻿using Riok.Mapperly.Abstractions;
-using tickethub.Dtos.Concert;
 using tickethub.Dtos.Order;
 using tickethub.Models;
 
@@ -14,8 +13,15 @@ public partial class OrderMapper
     [MapperIgnoreTarget("Concert")]
     public partial Order ToEntity(CreateOrderRequest request);
 
-    private decimal TotalPrice(Order order)
+    public OrderResponse ToResponse(Order order)
     {
-        return order.UnitPrice * order.Qty;
+        return new OrderResponse(
+            order.Id,
+            order.CustomerEmail,
+            order.Qty,
+            order.UnitPrice,
+            order.Qty * order.UnitPrice,
+            order.ConcertId
+        );
     }
 }
