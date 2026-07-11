@@ -1,9 +1,7 @@
-﻿using tickethub.Dtos.Order;
-using tickethub.Mappers;
+﻿using tickethub.Mappers;
 using tickethub.Models;
-using Xunit;
 
-namespace tickethub.Tests.Mappers;
+namespace tickethub.Tests.Orders;
 
 public class OrderMapperTests
 {
