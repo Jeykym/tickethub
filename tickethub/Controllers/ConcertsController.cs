@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using tickethub.Dtos;
 using tickethub.Dtos.Concert;
+using tickethub.Dtos.Order;
 using tickethub.Mappers;
 
 namespace tickethub.Controllers;
@@ -72,5 +73,24 @@ public class ConcertsController(
         context.SaveChanges();
         
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/orders")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult CreateOrder(
+        int id,
+        [FromBody] CreateOrderRequest request)
+    {
+        var concert = context.Concerts
+            .SingleOrDefault(c => c.Id == id);
+
+        if (concert is null)
+        {
+            return NotFound();
+        }
+        
+        return Ok();
     }
 }
