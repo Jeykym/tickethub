@@ -12,7 +12,7 @@ public class OrdersController(
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public IActionResult GetOrders()
+    public IActionResult GetAllOrders()
     {
         var orders = context.Orders
             .AsEnumerable()
