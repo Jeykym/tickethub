@@ -175,4 +175,33 @@ public class OrdersControllerTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains(orders, o => o.Email == "customerA@example.com" && o.Qty == 1);
         Assert.Contains(orders, o => o.Email == "customerB@example.com" && o.Qty == 4);
     }
+    
+    [Fact]
+    public async Task GetOrderById_ValidId_ReturnsOrder()
+    {
+        ClearDatabase();
+        var concert = await CreateConcertAsync(title: "Solo Concert");
+        var created = await CreateOrderAsync(concert.Id, customerEmail: "solo@example.com", qty: 3);
+
+        var response = await _client.GetAsync($"/api/orders/{created.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var order = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.NotNull(order);
+        Assert.Equal(created.Id, order.Id);
+        Assert.Equal("solo@example.com", order.Email);
+        Assert.Equal(3, order.Qty);
+        Assert.Equal(concert.Id, order.ConcertId);
+    }
+
+    [Fact]
+    public async Task GetOrderById_InvalidId_Returns404()
+    {
+        ClearDatabase();
+
+        var response = await _client.GetAsync($"/api/orders/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
