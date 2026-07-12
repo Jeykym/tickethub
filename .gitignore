@@ -22,3 +22,5 @@ Thumbs.db
 # === Local Environment Configurations ===
 # Exclude files that might contain local secrets or connection strings
 appsettings.Development.json
+
+.db

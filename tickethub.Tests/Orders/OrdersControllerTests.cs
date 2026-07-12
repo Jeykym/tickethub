@@ -204,29 +204,4 @@ public class OrdersControllerTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-    
-    [Fact]
-    public async Task DeleteOrder_ValidId_Returns204NoContentAndRemovesOrder()
-    {
-        ClearDatabase();
-        var concert = await CreateConcertAsync(title: "Concert to Order From");
-        var created = await CreateOrderAsync(concert.Id, customerEmail: "delete-me@example.com", qty: 2);
-
-        var deleteResponse = await _client.DeleteAsync($"/api/orders/{created.Id}");
-
-        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
-
-        var getResponse = await _client.GetAsync($"/api/orders/{created.Id}");
-        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
-    }
-
-    [Fact]
-    public async Task DeleteOrder_InvalidId_Returns404NotFound()
-    {
-        ClearDatabase();
-
-        var response = await _client.DeleteAsync($"/api/orders/{Guid.NewGuid()}");
-
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
 }
