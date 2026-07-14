@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using tickethub.Dtos;
 using tickethub.Dtos.Concert;
@@ -101,23 +102,27 @@ public class ConcertsController(
             return NotFound();
         }
 
-        // TODO fix race condition when 2 customers order near MaxCapacity at the same time
         if (concert.TicketsSold + request.Qty > concert.MaxCapacity)
         {
             return BadRequest("Order's quantity is above concert's maximum capacity");
         }
-        
         concert.TicketsSold += request.Qty;
         
         var order = orderMapper.ToEntity(request);
         order.UnitPrice = concert.TicketPrice;
         order.ConcertId = concert.Id;
-        
-        context.Orders.Add(order);
-        context.SaveChanges();
+
+        try
+        {
+            context.Orders.Add(order);
+            context.SaveChanges();
+        } catch (DbUpdateConcurrencyException)
+        {
+            return Conflict("Failed to process order due to a concurrency conflict.");
+        }
         
         var response = orderMapper.ToResponse(order);
-        
+
         return StatusCode(StatusCodes.Status201Created, response);
     }
 }

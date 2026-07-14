@@ -11,8 +11,8 @@ using tickethub;
 namespace tickethub.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260712135014_SyncModelChanges")]
-    partial class SyncModelChanges
+    [Migration("20260714215853_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,6 +36,7 @@ namespace tickethub.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("TicketsSold")
+                        .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Title")

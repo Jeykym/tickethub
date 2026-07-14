@@ -33,6 +33,7 @@ namespace tickethub.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("TicketsSold")
+                        .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Title")
@@ -43,6 +44,44 @@ namespace tickethub.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Concerts");
+                });
+
+            modelBuilder.Entity("tickethub.Models.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConcertId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Qty")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConcertId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("tickethub.Models.Order", b =>
+                {
+                    b.HasOne("tickethub.Models.Concert", "Concert")
+                        .WithMany()
+                        .HasForeignKey("ConcertId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Concert");
                 });
 #pragma warning restore 612, 618
         }

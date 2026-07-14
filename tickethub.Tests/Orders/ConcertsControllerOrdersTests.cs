@@ -2,12 +2,16 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using tickethub.Controllers;
 using tickethub.Dtos.Concert;
 using tickethub.Dtos.Order;
+using Xunit.Abstractions;
 
 namespace tickethub.Tests.Orders;
 
@@ -425,5 +429,55 @@ public class ConcertsControllerOrderTests : IClassFixture<WebApplicationFactory<
 
         Assert.NotNull(order);
         Assert.NotEqual(Guid.Empty, order.Id);
+    }
+    
+    [Fact]
+    public async Task CreateOrder_TwoRequestsRaceOnSameConcert_SecondRequestReturns409Conflict()
+    {
+        ClearDatabase();
+        var concert = await CreateConcert();
+        var request = ValidOrderRequest(qty: 1);
+
+        using var scope1 = _factory.Services.CreateScope();
+        using var scope2 = _factory.Services.CreateScope();
+
+        var controller1 = ActivatorUtilities.CreateInstance<ConcertsController>(scope1.ServiceProvider);
+        var controller2 = ActivatorUtilities.CreateInstance<ConcertsController>(scope2.ServiceProvider);
+
+        var db2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
+        _ = db2.Concerts.Single(c => c.Id == concert.Id);
+
+        var result1 = controller1.CreateOrder(concert.Id, request);
+        var created1 = Assert.IsType<ObjectResult>(result1);
+        Assert.Equal(StatusCodes.Status201Created, created1.StatusCode);
+
+        var result2 = controller2.CreateOrder(concert.Id, request);
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result2);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+    }
+    
+    [Fact]
+    public async Task CreateOrder_TwoRequestsOnDifferentConcerts_BothSucceed()
+    {
+        ClearDatabase();
+        var concertA = await CreateConcert();
+        var concertB = await CreateConcert();
+        var request = ValidOrderRequest(qty: 1);
+
+        using var scope1 = _factory.Services.CreateScope();
+        using var scope2 = _factory.Services.CreateScope();
+
+        var controller1 = ActivatorUtilities.CreateInstance<ConcertsController>(scope1.ServiceProvider);
+        var controller2 = ActivatorUtilities.CreateInstance<ConcertsController>(scope2.ServiceProvider);
+
+        var db2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
+        _ = db2.Concerts.Single(c => c.Id == concertB.Id);
+
+        var result1 = controller1.CreateOrder(concertA.Id, request);
+        var result2 = controller2.CreateOrder(concertB.Id, request);
+
+        Assert.Equal(StatusCodes.Status201Created, ((ObjectResult)result1).StatusCode);
+        Assert.Equal(StatusCodes.Status201Created, ((ObjectResult)result2).StatusCode);
     }
 }

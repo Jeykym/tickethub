@@ -19,6 +19,7 @@ public class Concert
     [Range(0, double.MaxValue, ErrorMessage = "TicketPrice must be greater than or equal to 0")]
     public decimal TicketPrice { get; set; }
 
+    [ConcurrencyCheck]
     [Range(0, int.MaxValue, ErrorMessage = "TicketsSold must be greater than or equal to 0")]
     public int TicketsSold { get; set; } = 0;
 }
