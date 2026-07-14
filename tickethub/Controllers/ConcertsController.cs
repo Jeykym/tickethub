@@ -70,6 +70,14 @@ public class ConcertsController(
         {
             return NotFound();
         }
+        
+        var hasExistingOrders = context.Orders
+            .Any(o => o.ConcertId == id);
+
+        if (hasExistingOrders)
+        {
+            return Conflict("Concert can't be deleted because it has orders processed already");
+        }
 
         context.Concerts.Remove(concert);
         context.SaveChanges();

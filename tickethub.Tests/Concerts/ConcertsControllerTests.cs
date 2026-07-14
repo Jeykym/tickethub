@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using tickethub.Dtos;
 using tickethub.Dtos.Concert;
+using tickethub.Dtos.Order;
 
 namespace tickethub.Tests.Concerts;
 
@@ -300,5 +301,32 @@ public class ConcertsControllerTests : IClassFixture<WebApplicationFactory<Progr
         var response = await _client.DeleteAsync($"/api/concerts/999999");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task DeleteConcert_ConcertHasOrders_Returns409Conflict()
+    {
+        ClearDatabase();
+    
+        // 1. Create a valid concert
+        var concertRequest = ValidRequest(title: "Concert With Orders");
+        var concertResponse = await _client.PostAsJsonAsync("/api/concerts", concertRequest);
+        var createdConcert = await concertResponse.Content.ReadFromJsonAsync<ConcertResponse>();
+        Assert.NotNull(createdConcert);
+
+        // 2. Create an order for this concert
+        var orderRequest = new CreateOrderRequest 
+        { 
+            Qty = 1,
+            CustomerEmail = "test@example.com"
+        };
+    
+        await _client.PostAsJsonAsync($"/api/concerts/{createdConcert.Id}/orders", orderRequest);
+
+        // 3. Attempt to delete the concert
+        var deleteResponse = await _client.DeleteAsync($"/api/concerts/{createdConcert.Id}");
+
+        // 4. Assert that the deletion was blocked with a 409 Conflict
+        Assert.Equal(HttpStatusCode.Conflict, deleteResponse.StatusCode);
     }
 }

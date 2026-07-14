@@ -1,5 +1,14 @@
 @tickethub_HostAddress = http://localhost:5234
 
+### Adjust these before running a request below.
+### After you POST a concert/order, copy its "id" from the response
+### and paste it into the matching variable here.
+@concertId = 1
+@orderId = 00000000-0000-0000-0000-000000000000
+@missingConcertId = 999999
+@missingOrderId = 00000000-0000-0000-0000-000000000000
+
+### Create a concert
 POST {{tickethub_HostAddress}}/api/concerts
 Content-Type: application/json
 Accept: application/json
@@ -10,3 +19,64 @@ Accept: application/json
   "maxCapacity": 5000,
   "ticketPrice": 675.00
 }
+
+### Get all concerts
+GET {{tickethub_HostAddress}}/api/concerts
+Accept: application/json
+
+### Get a single concert by id
+GET {{tickethub_HostAddress}}/api/concerts/{{concertId}}
+Accept: application/json
+
+### Get a concert by id that doesn't exist -> 404
+GET {{tickethub_HostAddress}}/api/concerts/{{missingConcertId}}
+Accept: application/json
+
+### Create an order for a concert
+POST {{tickethub_HostAddress}}/api/concerts/{{concertId}}/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customerEmail": "customer@example.com",
+  "qty": 2
+}
+
+### Create an order exceeding max capacity -> 400
+POST {{tickethub_HostAddress}}/api/concerts/{{concertId}}/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customerEmail": "toomany@example.com",
+  "qty": 999999
+}
+
+### Create an order for a concert that doesn't exist -> 404
+POST {{tickethub_HostAddress}}/api/concerts/{{missingConcertId}}/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customerEmail": "customer@example.com",
+  "qty": 2
+}
+
+### Get all orders
+GET {{tickethub_HostAddress}}/api/orders
+Accept: application/json
+
+### Get a single order by id
+GET {{tickethub_HostAddress}}/api/orders/{{orderId}}
+Accept: application/json
+
+### Get an order by id that doesn't exist -> 404
+GET {{tickethub_HostAddress}}/api/orders/{{missingOrderId}}
+Accept: application/json
+
+### Delete a concert
+DELETE {{tickethub_HostAddress}}/api/concerts/{{concertId}}
+
+### Delete a concert that doesn't exist -> 404
+DELETE {{tickethub_HostAddress}}/api/concerts/{{missingConcertId}}
+t a
