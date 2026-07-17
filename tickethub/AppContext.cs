@@ -1,14 +1,11 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using tickethub.Models;
 
 namespace tickethub;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {}
-    
     public DbSet<Concert> Concerts { get; set; }
     public DbSet<Order> Orders { get; set; }
 }
