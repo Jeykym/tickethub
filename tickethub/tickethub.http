@@ -3,7 +3,7 @@
 ### Adjust these before running a request below.
 ### After you POST a concert/order, copy its "id" from the response
 ### and paste it into the matching variable here.
-@concertId = 1
+@concertId = 3
 @orderId = 00000000-0000-0000-0000-000000000000
 @missingConcertId = 999999
 @missingOrderId = 00000000-0000-0000-0000-000000000000
@@ -79,4 +79,3 @@ DELETE {{tickethub_HostAddress}}/api/concerts/{{concertId}}
 
 ### Delete a concert that doesn't exist -> 404
 DELETE {{tickethub_HostAddress}}/api/concerts/{{missingConcertId}}
-t a
