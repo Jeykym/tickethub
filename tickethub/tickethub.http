@@ -1,4 +1,38 @@
 @tickethub_HostAddress = http://localhost:5234
+@keycloak_HostAddress = http://localhost:8080
+
+@realm = tickethub
+@clientId = tickethub-api
+
+### Get an access token for testuser via the password grant
+### (tickethub-api is a public client with direct access grants enabled,
+### so no client_secret is needed)
+# @name login
+POST {{keycloak_HostAddress}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&
+client_id={{clientId}}&
+username=testuser&
+password=password123&
+scope=openid
+
+> {%
+    client.global.set("access_token", response.body.access_token);
+%}
+
+### Call the public auth endpoint (no token needed)
+GET {{tickethub_HostAddress}}/api/auth/public
+Accept: application/json
+
+### Call the secure auth endpoint (uses the access_token from the login request above)
+GET {{tickethub_HostAddress}}/api/auth/secure
+Authorization: Bearer {{access_token}}
+Accept: application/json
+
+### Call the secure auth endpoint with no token -> 401
+GET {{tickethub_HostAddress}}/api/auth/secure
+Accept: application/json
 
 ### Adjust these before running a request below.
 ### After you POST a concert/order, copy its "id" from the response
